@@ -369,7 +369,7 @@ app.get('/api/historias/:id', authMiddleware, async (req, res) => {
 
 app.post('/api/historias', authMiddleware, async (req, res) => {
   try {
-    const { clienteId, observaciones, valor, fecha } = req.body;
+    const { clienteId, observaciones, valor, fecha, tipoPago, referido } = req.body;
 
     if (!clienteId || !observaciones) {
       return res.status(400).json({ error: 'Cliente y observaciones son requeridos' });
@@ -380,6 +380,8 @@ app.post('/api/historias', authMiddleware, async (req, res) => {
         clienteId: parseInt(clienteId),
         observaciones,
         valor: valor ? parseFloat(valor) : null,
+        tipoPago: tipoPago || 'pago',
+        referido: referido || null,
         fecha: fecha ? new Date(fecha) : new Date()
       },
       include: { cliente: true }
@@ -395,13 +397,15 @@ app.post('/api/historias', authMiddleware, async (req, res) => {
 app.put('/api/historias/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { observaciones, valor, fecha } = req.body;
+    const { observaciones, valor, fecha, tipoPago, referido } = req.body;
 
     const historia = await prisma.historia.update({
       where: { id: parseInt(id) },
       data: {
         observaciones,
         valor: valor ? parseFloat(valor) : null,
+        tipoPago: tipoPago || 'pago',
+        referido: referido || null,
         fecha: fecha ? new Date(fecha) : undefined
       },
       include: { cliente: true }
@@ -489,7 +493,8 @@ app.post('/api/formulas', authMiddleware, async (req, res) => {
         items: {
           create: items.map(item => ({
             nombre: item.nombre,
-            cantidad: parseInt(item.cantidad)
+            cantidad: parseInt(item.cantidad),
+            unidad: item.unidad || 'FRASCOS'
           }))
         }
       },
@@ -517,7 +522,8 @@ app.put('/api/formulas/:id', authMiddleware, async (req, res) => {
         items: {
           create: items.map(item => ({
             nombre: item.nombre,
-            cantidad: parseInt(item.cantidad)
+            cantidad: parseInt(item.cantidad),
+            unidad: item.unidad || 'FRASCOS'
           }))
         }
       },

@@ -25,8 +25,8 @@ model Cliente {
   foto      String?
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-  historias Historia[]
   formulas  Formula[]
+  historias Historia[]
 }
 
 model Historia {
@@ -34,26 +34,29 @@ model Historia {
   fecha         DateTime @default(now())
   observaciones String
   valor         Float?
+  tipoPago      String   @default("pago")
+  referido      String?
   clienteId     Int
-  cliente       Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  cliente       Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 }
 
 model Formula {
   id        Int           @id @default(autoincrement())
   fecha     DateTime      @default(now())
   clienteId Int
-  cliente   Cliente       @relation(fields: [clienteId], references: [id], onDelete: Cascade)
-  items     FormulaItem[]
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
+  cliente   Cliente       @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  items     FormulaItem[]
 }
 
 model FormulaItem {
   id        Int     @id @default(autoincrement())
   nombre    String
   cantidad  Int
+  unidad    String  @default("FRASCOS")
   formulaId Int
   formula   Formula @relation(fields: [formulaId], references: [id], onDelete: Cascade)
 }

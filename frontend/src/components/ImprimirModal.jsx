@@ -111,7 +111,7 @@ export default function ImprimirModal({ tipo, data, onClose, soloVista = false }
                       {item.dosis && <span style={{ marginLeft: '20px' }}>...{item.dosis}</span>}
                     </td>
                     <td style={{ border: '1px solid #999', padding: '8px', textAlign: 'center', fontSize: '11px' }}>
-                      {item.cantidad} {item.cantidad > 1 ? 'FRASCOS' : 'FRASCO'}
+                      {item.cantidad} {item.unidad || 'FRASCOS'}
                     </td>
                   </tr>
                 ))}
@@ -137,6 +137,13 @@ export default function ImprimirModal({ tipo, data, onClose, soloVista = false }
             {/* Pie de página */}
             <div style={{ textAlign: 'center', borderTop: '1px solid #999', paddingTop: '10px' }}>
               <p style={{ fontSize: '11px', fontWeight: 'bold' }}>PRESENTAR ESTA FORMULA EN LA PROXIMA CONSULTA</p>
+            </div>
+
+            {/* Línea de corte con tijera */}
+            <div style={{ marginTop: '20px', textAlign: 'center', position: 'relative' }}>
+              <div style={{ borderTop: '2px dashed #999', width: '100%', position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '-5px', top: '-10px', fontSize: '16px' }}>✂</span>
+              </div>
             </div>
           </div>
         );
@@ -219,8 +226,15 @@ export default function ImprimirModal({ tipo, data, onClose, soloVista = false }
             {/* Valor consulta */}
             {data.valor && (
               <div style={{ textAlign: 'right', marginBottom: '15px' }}>
-                <span style={{ fontSize: '12px' }}>Valor consulta: </span>
+                <span style={{ fontSize: '12px' }}>{data.tipoPago === 'abono' ? 'Abonó: ' : 'Valor consulta: '}</span>
                 <span style={{ fontSize: '14px', fontWeight: 'bold' }}>${data.valor.toLocaleString('es-CO')}</span>
+              </div>
+            )}
+
+            {/* Referido */}
+            {data.referido && (
+              <div style={{ marginBottom: '15px', fontSize: '11px' }}>
+                <strong>Referido por:</strong> {data.referido}
               </div>
             )}
 
@@ -228,6 +242,13 @@ export default function ImprimirModal({ tipo, data, onClose, soloVista = false }
             <div style={{ marginTop: '50px', textAlign: 'center' }}>
               <div style={{ borderTop: '1px solid #333', width: '200px', margin: '0 auto' }}></div>
               <p style={{ fontSize: '10px', marginTop: '5px' }}>Firma y Sello</p>
+            </div>
+
+            {/* Línea de corte con tijera */}
+            <div style={{ marginTop: '20px', textAlign: 'center', position: 'relative' }}>
+              <div style={{ borderTop: '2px dashed #999', width: '100%', position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '-5px', top: '-10px', fontSize: '16px' }}>✂</span>
+              </div>
             </div>
           </div>
         );

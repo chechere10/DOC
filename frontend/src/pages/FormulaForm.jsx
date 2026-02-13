@@ -11,7 +11,7 @@ export default function FormulaForm() {
 
   const [formData, setFormData] = useState({
     clienteId: searchParams.get('clienteId') || '',
-    items: [{ nombre: '', cantidad: 1 }]
+    items: [{ nombre: '', cantidad: 1, unidad: 'FRASCOS' }]
   });
   const [clientes, setClientes] = useState([]);
   const [clienteSearch, setClienteSearch] = useState('');
@@ -34,8 +34,8 @@ export default function FormulaForm() {
       setFormData({
         clienteId: res.data.clienteId,
         items: res.data.items?.length > 0 
-          ? res.data.items.map(i => ({ nombre: i.nombre, cantidad: i.cantidad }))
-          : [{ nombre: '', cantidad: 1 }]
+          ? res.data.items.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, unidad: i.unidad || 'FRASCOS' }))
+          : [{ nombre: '', cantidad: 1, unidad: 'FRASCOS' }]
       });
       setSelectedCliente(res.data.cliente);
     } catch (error) {
@@ -83,7 +83,7 @@ export default function FormulaForm() {
     if (formData.items.length < 10) {
       setFormData({
         ...formData,
-        items: [...formData.items, { nombre: '', cantidad: 1 }]
+        items: [...formData.items, { nombre: '', cantidad: 1, unidad: 'FRASCOS' }]
       });
     }
   };
@@ -233,7 +233,7 @@ export default function FormulaForm() {
           </label>
           <div className="space-y-3">
             {formData.items.map((item, index) => (
-              <div key={index} className="flex gap-3 items-start">
+              <div key={index} className="flex gap-2 items-start">
                 <div className="flex-1">
                   <input
                     type="text"
@@ -243,7 +243,7 @@ export default function FormulaForm() {
                     placeholder={`Ítem ${index + 1}: Nombre del medicamento`}
                   />
                 </div>
-                <div className="w-24">
+                <div className="w-20">
                   <input
                     type="number"
                     value={item.cantidad}
@@ -251,6 +251,15 @@ export default function FormulaForm() {
                     className="input-field text-center"
                     placeholder="Cant."
                     min="1"
+                  />
+                </div>
+                <div className="w-32">
+                  <input
+                    type="text"
+                    value={item.unidad}
+                    onChange={(e) => updateItem(index, 'unidad', e.target.value)}
+                    className="input-field"
+                    placeholder="Ej: FRASCOS"
                   />
                 </div>
                 <button

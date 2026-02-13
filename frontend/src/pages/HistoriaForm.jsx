@@ -12,7 +12,9 @@ export default function HistoriaForm() {
   const [formData, setFormData] = useState({
     clienteId: searchParams.get('clienteId') || '',
     observaciones: '',
-    valor: ''
+    valor: '',
+    tipoPago: 'pago',
+    referido: ''
   });
   const [clientes, setClientes] = useState([]);
   const [clienteSearch, setClienteSearch] = useState('');
@@ -35,7 +37,9 @@ export default function HistoriaForm() {
       setFormData({
         clienteId: res.data.clienteId,
         observaciones: res.data.observaciones,
-        valor: res.data.valor || ''
+        valor: res.data.valor || '',
+        tipoPago: res.data.tipoPago || 'pago',
+        referido: res.data.referido || ''
       });
       setSelectedCliente(res.data.cliente);
     } catch (error) {
@@ -94,7 +98,9 @@ export default function HistoriaForm() {
       const data = {
         clienteId: parseInt(formData.clienteId),
         observaciones: formData.observaciones,
-        valor: formData.valor ? parseFloat(formData.valor) : null
+        valor: formData.valor ? parseFloat(formData.valor) : null,
+        tipoPago: formData.tipoPago,
+        referido: formData.referido || null
       };
 
       if (isEdit) {
@@ -211,20 +217,50 @@ export default function HistoriaForm() {
           />
         </div>
 
-        {/* Valor */}
+        {/* Tipo de Pago y Valor */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo de pago
+            </label>
+            <select
+              value={formData.tipoPago}
+              onChange={(e) => setFormData({ ...formData, tipoPago: e.target.value })}
+              className="input-field"
+            >
+              <option value="pago">💰 Pagó</option>
+              <option value="abono">📋 Abonó</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Valor ($)
+            </label>
+            <input
+              type="number"
+              value={formData.valor}
+              onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+              className="input-field"
+              placeholder="0"
+              min="0"
+              step="1000"
+            />
+          </div>
+        </div>
+
+        {/* Referido */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Valor (opcional)
+            👥 Referido por (opcional)
           </label>
           <input
-            type="number"
-            value={formData.valor}
-            onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+            type="text"
+            value={formData.referido}
+            onChange={(e) => setFormData({ ...formData, referido: e.target.value })}
             className="input-field"
-            placeholder="0"
-            min="0"
-            step="1000"
+            placeholder="Nombre de quien lo refirió (familiar, amigo, paciente...)"
           />
+          <p className="text-xs text-gray-500 mt-1">Si el paciente viene referido por alguien, escriba el nombre aquí para aplicar descuento</p>
         </div>
 
         {/* Botones */}

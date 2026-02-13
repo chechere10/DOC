@@ -167,11 +167,7 @@ export default function ClienteForm() {
               className="input-field"
               placeholder="Número de cédula"
               required
-              disabled={isEdit}
             />
-            {isEdit && (
-              <p className="text-xs text-gray-500 mt-1">La cédula no se puede modificar</p>
-            )}
           </div>
 
           <div>
