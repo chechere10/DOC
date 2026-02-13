@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  usuario   String   @unique
+  password  String
+  nombre    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Cliente {
+  id        Int        @id @default(autoincrement())
+  nombre    String
+  cedula    String     @unique
+  telefono  String?
+  direccion String?
+  foto      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  historias Historia[]
+  formulas  Formula[]
+}
+
+model Historia {
+  id            Int      @id @default(autoincrement())
+  fecha         DateTime @default(now())
+  observaciones String
+  valor         Float?
+  clienteId     Int
+  cliente       Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Formula {
+  id        Int           @id @default(autoincrement())
+  fecha     DateTime      @default(now())
+  clienteId Int
+  cliente   Cliente       @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  items     FormulaItem[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model FormulaItem {
+  id        Int     @id @default(autoincrement())
+  nombre    String
+  cantidad  Int
+  formulaId Int
+  formula   Formula @relation(fields: [formulaId], references: [id], onDelete: Cascade)
+}
+
+model Nota {
+  id        Int      @id @default(autoincrement())
+  fecha     DateTime
+  hora      String
+  contenido String
+  estado    String   @default("abierta")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

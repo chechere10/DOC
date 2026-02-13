@@ -4,3 +4,5 @@ dist/
 *.db
 *.zip
 .DS_Store
+.vercel
+package-lock.json
