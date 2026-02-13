@@ -1,0 +1,17 @@
+# FUNDAMUFA - Instrucciones de Instalación
+# ==========================================
+# 
+# Como tu Linux tiene IP 10.20.34.79, vamos a crear un servidor
+# temporal para que Windows descargue los archivos.
+#
+# PASO 1: En tu Linux, ejecuta este comando para servir los archivos:
+#
+#   cd /home/hide/Documentos/DOC/sistema-medico
+#   python3 -m http.server 8080
+#
+# PASO 2: En el PC Windows de tu tío, abre PowerShell como Administrador
+#         y ejecuta el siguiente comando (todo en una sola línea):
+#
+#   Set-ExecutionPolicy Bypass -Scope Process -Force; iwr -Uri "http://10.20.34.79:8080/deploy-windows/install-from-linux.ps1" -OutFile "$env:TEMP\install.ps1"; & "$env:TEMP\install.ps1"
+#
+# Eso descargará e instalará todo automáticamente.

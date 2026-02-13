@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Usuario del sistema (para login)
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  usuario   String   @unique
+  password  String
+  nombre    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Clientes/Pacientes - Se registran una sola vez
+model Cliente {
+  id        Int        @id @default(autoincrement())
+  nombre    String
+  cedula    String     @unique
+  telefono  String?
+  direccion String?
+  foto      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  historias Historia[]
+  formulas  Formula[]
+}
+
+// Historias clínicas vinculadas a un cliente
+model Historia {
+  id            Int      @id @default(autoincrement())
+  fecha         DateTime @default(now())
+  observaciones String
+  valor         Float?
+  clienteId     Int
+  cliente       Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Fórmulas/Recetas médicas vinculadas a un cliente
+model Formula {
+  id        Int           @id @default(autoincrement())
+  fecha     DateTime      @default(now())
+  clienteId Int
+  cliente   Cliente       @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  items     FormulaItem[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+// Items de cada fórmula
+model FormulaItem {
+  id        Int     @id @default(autoincrement())
+  nombre    String
+  cantidad  Int
+  formulaId Int
+  formula   Formula @relation(fields: [formulaId], references: [id], onDelete: Cascade)
+}
+
+// Notas/Recordatorios generales
+model Nota {
+  id        Int      @id @default(autoincrement())
+  fecha     DateTime
+  hora      String
+  contenido String
+  estado    String   @default("abierta") // abierta, cerrada
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
