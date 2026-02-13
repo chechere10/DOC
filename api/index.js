@@ -2,10 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const { PrismaClient } = require('@prisma/client');
 
 const app = express();
 const prisma = new PrismaClient();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Middlewares
 app.use(cors({ origin: true, credentials: true }));
@@ -258,7 +260,7 @@ app.get('/api/clientes/:id', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/api/clientes', authMiddleware, async (req, res) => {
+app.post('/api/clientes', authMiddleware, upload.single('foto'), async (req, res) => {
   try {
     const { nombre, cedula, telefono, direccion } = req.body;
 
@@ -288,7 +290,7 @@ app.post('/api/clientes', authMiddleware, async (req, res) => {
   }
 });
 
-app.put('/api/clientes/:id', authMiddleware, async (req, res) => {
+app.put('/api/clientes/:id', authMiddleware, upload.single('foto'), async (req, res) => {
   try {
     const { id } = req.params;
     const { nombre, cedula, telefono, direccion } = req.body;
