@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
-import { FileText, Save, ArrowLeft, Search, User } from 'lucide-react';
+import { FileText, Save, ArrowLeft, Search, User, Camera, X, Image, ZoomIn } from 'lucide-react';
 
 export default function HistoriaForm() {
   const { id } = useParams();
@@ -22,6 +22,9 @@ export default function HistoriaForm() {
   const [selectedCliente, setSelectedCliente] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [examenes, setExamenes] = useState([]);         // Exámenes existentes (ya guardados)
+  const [nuevosExamenes, setNuevosExamenes] = useState([]); // Nuevos exámenes (por guardar)
+  const [previewImg, setPreviewImg] = useState(null);   // Imagen en zoom
 
   useEffect(() => {
     if (isEdit) {
@@ -42,6 +45,9 @@ export default function HistoriaForm() {
         referido: res.data.referido || ''
       });
       setSelectedCliente(res.data.cliente);
+      if (res.data.examenes) {
+        setExamenes(res.data.examenes);
+      }
     } catch (error) {
       setError('Error al cargar historia');
     }
@@ -100,7 +106,11 @@ export default function HistoriaForm() {
         observaciones: formData.observaciones,
         valor: formData.valor ? parseFloat(formData.valor) : null,
         tipoPago: formData.tipoPago,
-        referido: formData.referido || null
+        referido: formData.referido || null,
+        examenes: nuevosExamenes.map(ex => ({
+          nombre: ex.nombre,
+          imagen: ex.imagen
+        }))
       };
 
       if (isEdit) {
@@ -262,6 +272,148 @@ export default function HistoriaForm() {
           />
           <p className="text-xs text-gray-500 mt-1">Si el paciente viene referido por alguien, escriba el nombre aquí para aplicar descuento</p>
         </div>
+
+        {/* Exámenes / Fotos */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            📷 Exámenes / Fotos (opcional)
+          </label>
+          <p className="text-xs text-gray-500 mb-3">Suba fotos de exámenes externos que el paciente traiga de otra parte</p>
+
+          {/* Exámenes ya guardados */}
+          {examenes.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-medium text-green-700 mb-2">✅ Exámenes guardados ({examenes.length}):</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {examenes.map((examen) => (
+                  <div key={examen.id} className="relative group border rounded-lg overflow-hidden bg-gray-50">
+                    <img
+                      src={examen.imagen}
+                      alt={examen.nombre}
+                      className="w-full h-32 object-cover cursor-pointer"
+                      onClick={() => setPreviewImg(examen.imagen)}
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewImg(examen.imagen)}
+                        className="opacity-0 group-hover:opacity-100 p-2 bg-white rounded-full shadow-lg transition-opacity"
+                      >
+                        <ZoomIn size={16} className="text-gray-700" />
+                      </button>
+                    </div>
+                    <div className="p-1 flex items-center justify-between">
+                      <span className="text-xs text-gray-600 truncate">{examen.nombre}</span>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (window.confirm('¿Eliminar este examen?')) {
+                            try {
+                              await api.delete(`/examenes/${examen.id}`);
+                              setExamenes(examenes.filter(e => e.id !== examen.id));
+                            } catch (err) {
+                              alert('Error al eliminar examen');
+                            }
+                          }
+                        }}
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Nuevos exámenes por subir */}
+          {nuevosExamenes.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-medium text-blue-700 mb-2">📤 Pendientes de guardar ({nuevosExamenes.length}):</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {nuevosExamenes.map((examen, idx) => (
+                  <div key={idx} className="relative group border-2 border-blue-300 border-dashed rounded-lg overflow-hidden bg-blue-50">
+                    <img
+                      src={examen.imagen}
+                      alt={examen.nombre}
+                      className="w-full h-32 object-cover cursor-pointer"
+                      onClick={() => setPreviewImg(examen.imagen)}
+                    />
+                    <div className="p-1 flex items-center justify-between">
+                      <input
+                        type="text"
+                        value={examen.nombre}
+                        onChange={(e) => {
+                          const updated = [...nuevosExamenes];
+                          updated[idx].nombre = e.target.value;
+                          setNuevosExamenes(updated);
+                        }}
+                        className="text-xs border-none bg-transparent w-full focus:outline-none"
+                        placeholder="Nombre del examen"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setNuevosExamenes(nuevosExamenes.filter((_, i) => i !== idx))}
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Botón para subir fotos */}
+          <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+            <Camera size={20} className="text-gray-500" />
+            <span className="text-sm text-gray-600">Tomar foto o seleccionar imagen</span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    setNuevosExamenes(prev => [...prev, {
+                      nombre: file.name.replace(/\.[^/.]+$/, '') || 'Examen',
+                      imagen: ev.target.result
+                    }]);
+                  };
+                  reader.readAsDataURL(file);
+                });
+                e.target.value = '';
+              }}
+            />
+          </label>
+        </div>
+
+        {/* Modal de zoom de imagen */}
+        {previewImg && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4"
+            onClick={() => setPreviewImg(null)}
+          >
+            <button
+              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70"
+              onClick={() => setPreviewImg(null)}
+            >
+              <X size={24} />
+            </button>
+            <img
+              src={previewImg}
+              alt="Examen ampliado"
+              className="max-w-full max-h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
 
         {/* Botones */}
         <div className="flex gap-3 pt-4">

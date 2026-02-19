@@ -340,7 +340,8 @@ app.get('/api/historias', authMiddleware, async (req, res) => {
       include: {
         cliente: {
           select: { id: true, nombre: true, cedula: true, telefono: true, direccion: true }
-        }
+        },
+        examenes: true
       }
     });
 
@@ -356,7 +357,7 @@ app.get('/api/historias/:id', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const historia = await prisma.historia.findUnique({
       where: { id: parseInt(id) },
-      include: { cliente: true }
+      include: { cliente: true, examenes: true }
     });
 
     if (!historia) return res.status(404).json({ error: 'Historia no encontrada' });
@@ -384,8 +385,27 @@ app.post('/api/historias', authMiddleware, async (req, res) => {
         referido: referido || null,
         fecha: fecha ? new Date(fecha) : new Date()
       },
-      include: { cliente: true }
+      include: { cliente: true, examenes: true }
     });
+
+    // Si se envían exámenes (base64), guardarlos
+    if (req.body.examenes && req.body.examenes.length > 0) {
+      for (const examen of req.body.examenes) {
+        await prisma.examen.create({
+          data: {
+            nombre: examen.nombre || 'Examen',
+            imagen: examen.imagen,
+            historiaId: historia.id
+          }
+        });
+      }
+      // Re-fetch con exámenes
+      const historiaConExamenes = await prisma.historia.findUnique({
+        where: { id: historia.id },
+        include: { cliente: true, examenes: true }
+      });
+      return res.status(201).json(historiaConExamenes);
+    }
 
     res.status(201).json(historia);
   } catch (error) {
@@ -408,8 +428,28 @@ app.put('/api/historias/:id', authMiddleware, async (req, res) => {
         referido: referido || null,
         fecha: fecha ? new Date(fecha) : undefined
       },
-      include: { cliente: true }
+      include: { cliente: true, examenes: true }
     });
+
+    // Si se envían exámenes nuevos, agregarlos
+    if (req.body.examenes && req.body.examenes.length > 0) {
+      for (const examen of req.body.examenes) {
+        if (!examen.id) { // Solo crear los nuevos (sin id)
+          await prisma.examen.create({
+            data: {
+              nombre: examen.nombre || 'Examen',
+              imagen: examen.imagen,
+              historiaId: historia.id
+            }
+          });
+        }
+      }
+      const historiaActualizada = await prisma.historia.findUnique({
+        where: { id: historia.id },
+        include: { cliente: true, examenes: true }
+      });
+      return res.json(historiaActualizada);
+    }
 
     res.json(historia);
   } catch (error) {
@@ -426,6 +466,18 @@ app.delete('/api/historias/:id', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error al eliminar historia' });
+  }
+});
+
+// ============ EXAMENES ROUTES ============
+app.delete('/api/examenes/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.examen.delete({ where: { id: parseInt(id) } });
+    res.json({ message: 'Examen eliminado correctamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al eliminar examen' });
   }
 });
 

@@ -11,7 +11,8 @@ import {
   User,
   DollarSign,
   Printer,
-  Eye
+  Eye,
+  Image
 } from 'lucide-react';
 import ImprimirModal from '../components/ImprimirModal';
 
@@ -123,6 +124,12 @@ export default function Historias() {
                     <div className="mt-3 flex items-center gap-1 text-green-600 font-medium">
                       <DollarSign size={16} />
                       {historia.valor.toLocaleString('es-CO')}
+                    </div>
+                  )}
+                  {historia.examenes && historia.examenes.length > 0 && (
+                    <div className="mt-2 flex items-center gap-1 text-blue-600 text-sm">
+                      <Image size={14} />
+                      {historia.examenes.length} examen(es) adjunto(s)
                     </div>
                   )}
                 </div>

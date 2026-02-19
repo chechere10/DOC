@@ -238,6 +238,29 @@ export default function ImprimirModal({ tipo, data, onClose, soloVista = false }
               </div>
             )}
 
+            {/* Exámenes adjuntos */}
+            {data.examenes && data.examenes.length > 0 && (
+              <div style={{ marginBottom: '15px' }}>
+                <p style={{ fontWeight: 'bold', fontSize: '12px', marginBottom: '10px', borderBottom: '1px solid #ccc', paddingBottom: '5px' }}>
+                  📷 Exámenes adjuntos ({data.examenes.length}):
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                  {data.examenes.map((examen, idx) => (
+                    <div key={idx} style={{ border: '1px solid #ccc', borderRadius: '4px', overflow: 'hidden' }}>
+                      <img
+                        src={examen.imagen}
+                        alt={examen.nombre}
+                        style={{ width: '100%', height: 'auto', display: 'block' }}
+                      />
+                      <p style={{ fontSize: '9px', textAlign: 'center', padding: '3px', margin: 0, backgroundColor: '#f5f5f5' }}>
+                        {examen.nombre}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Firma */}
             <div style={{ marginTop: '50px', textAlign: 'center' }}>
               <div style={{ borderTop: '1px solid #333', width: '200px', margin: '0 auto' }}></div>
