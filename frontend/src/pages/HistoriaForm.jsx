@@ -3,6 +3,38 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { FileText, Save, ArrowLeft, Search, User, Camera, X, Image, ZoomIn } from 'lucide-react';
 
+// Comprimir imagen para que no exceda el límite de Vercel (4.5MB)
+const compressImage = (file, maxWidth = 1200, quality = 0.7) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Redimensionar si es más grande que maxWidth
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convertir a JPEG comprimido
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
 export default function HistoriaForm() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -374,20 +406,20 @@ export default function HistoriaForm() {
               type="file"
               accept="image/*"
               multiple
-              capture="environment"
               className="hidden"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const files = Array.from(e.target.files);
-                files.forEach(file => {
-                  const reader = new FileReader();
-                  reader.onload = (ev) => {
+                for (const file of files) {
+                  try {
+                    const compressedImage = await compressImage(file);
                     setNuevosExamenes(prev => [...prev, {
                       nombre: file.name.replace(/\.[^/.]+$/, '') || 'Examen',
-                      imagen: ev.target.result
+                      imagen: compressedImage
                     }]);
-                  };
-                  reader.readAsDataURL(file);
-                });
+                  } catch (err) {
+                    console.error('Error al comprimir imagen:', err);
+                  }
+                }
                 e.target.value = '';
               }}
             />
