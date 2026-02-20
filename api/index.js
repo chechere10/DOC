@@ -601,6 +601,148 @@ app.delete('/api/formulas/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// ============ FACTURAS ROUTES ============
+app.get('/api/facturas', authMiddleware, async (req, res) => {
+  try {
+    const { search, clienteId } = req.query;
+    let where = {};
+
+    if (clienteId) where.clienteId = parseInt(clienteId);
+
+    if (search) {
+      where.OR = [
+        { cliente: { nombre: { contains: search, mode: 'insensitive' } } },
+        { cliente: { cedula: { contains: search, mode: 'insensitive' } } }
+      ];
+      const searchNum = parseInt(search);
+      if (!isNaN(searchNum)) {
+        where.OR.push({ numero: searchNum });
+      }
+    }
+
+    const facturas = await prisma.factura.findMany({
+      where,
+      orderBy: { fecha: 'desc' },
+      include: {
+        cliente: {
+          select: { id: true, nombre: true, cedula: true, telefono: true, direccion: true }
+        },
+        items: true
+      }
+    });
+
+    res.json(facturas);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener facturas' });
+  }
+});
+
+app.get('/api/facturas/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const factura = await prisma.factura.findUnique({
+      where: { id: parseInt(id) },
+      include: { cliente: true, items: true }
+    });
+
+    if (!factura) return res.status(404).json({ error: 'Factura no encontrada' });
+    res.json(factura);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener factura' });
+  }
+});
+
+app.post('/api/facturas', authMiddleware, async (req, res) => {
+  try {
+    const { clienteId, items, fecha, vencimiento } = req.body;
+
+    if (!clienteId || !items || items.length === 0) {
+      return res.status(400).json({ error: 'Cliente e items son requeridos' });
+    }
+
+    // Generar número de factura auto-incremental
+    const ultimaFactura = await prisma.factura.findFirst({
+      orderBy: { numero: 'desc' }
+    });
+    const nuevoNumero = ultimaFactura ? ultimaFactura.numero + 1 : 10001;
+
+    const total = items.reduce((sum, item) => sum + (parseFloat(item.precioUnitario) * parseInt(item.cantidad)), 0);
+
+    const factura = await prisma.factura.create({
+      data: {
+        numero: nuevoNumero,
+        clienteId: parseInt(clienteId),
+        fecha: fecha ? new Date(fecha) : new Date(),
+        vencimiento: vencimiento ? new Date(vencimiento) : null,
+        total,
+        saldo: total,
+        items: {
+          create: items.map(item => ({
+            cantidad: parseInt(item.cantidad),
+            descripcion: item.descripcion,
+            precioUnitario: parseFloat(item.precioUnitario),
+            total: parseFloat(item.precioUnitario) * parseInt(item.cantidad)
+          }))
+        }
+      },
+      include: { cliente: true, items: true }
+    });
+
+    res.status(201).json(factura);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al crear factura' });
+  }
+});
+
+app.put('/api/facturas/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { items, fecha, vencimiento } = req.body;
+
+    await prisma.facturaItem.deleteMany({ where: { facturaId: parseInt(id) } });
+
+    const total = items.reduce((sum, item) => sum + (parseFloat(item.precioUnitario) * parseInt(item.cantidad)), 0);
+
+    const factura = await prisma.factura.update({
+      where: { id: parseInt(id) },
+      data: {
+        fecha: fecha ? new Date(fecha) : undefined,
+        vencimiento: vencimiento ? new Date(vencimiento) : null,
+        total,
+        saldo: total,
+        items: {
+          create: items.map(item => ({
+            cantidad: parseInt(item.cantidad),
+            descripcion: item.descripcion,
+            precioUnitario: parseFloat(item.precioUnitario),
+            total: parseFloat(item.precioUnitario) * parseInt(item.cantidad)
+          }))
+        }
+      },
+      include: { cliente: true, items: true }
+    });
+
+    res.json(factura);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al actualizar factura' });
+  }
+});
+
+app.delete('/api/facturas/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.factura.delete({ where: { id: parseInt(id) } });
+    res.json({ message: 'Factura eliminada correctamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al eliminar factura' });
+  }
+});
+
 // ============ NOTAS ROUTES ============
 app.get('/api/notas', authMiddleware, async (req, res) => {
   try {

@@ -10,7 +10,8 @@ import {
   Menu,
   X,
   Stethoscope,
-  Settings
+  Settings,
+  Receipt
 } from 'lucide-react';
 import { useState } from 'react';
 import ConfiguracionUsuarios from './ConfiguracionUsuarios';
@@ -31,6 +32,7 @@ export default function Layout({ children }) {
     { path: '/clientes', icon: Users, label: 'Clientes' },
     { path: '/historias', icon: FileText, label: 'Historias' },
     { path: '/formulas', icon: ClipboardList, label: 'Fórmulas' },
+    { path: '/facturas', icon: Receipt, label: 'Facturas' },
     { path: '/notas', icon: StickyNote, label: 'Notas' },
   ];
 

@@ -276,6 +276,139 @@ export default function ImprimirModal({ tipo, data, onClose, soloVista = false }
           </div>
         );
 
+      case 'factura':
+        const formatMoney = (amount) => {
+          return new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }).format(amount || 0);
+        };
+
+        const getVencimiento = () => {
+          if (data.vencimiento) return formatDate(data.vencimiento);
+          // Si no hay vencimiento, poner 30 días después de la fecha
+          const fechaBase = new Date(data.fecha);
+          fechaBase.setDate(fechaBase.getDate() + 30);
+          return formatDate(fechaBase);
+        };
+
+        return (
+          <div className="print-content font-serif" style={{ fontSize: '13px', maxWidth: '800px', margin: '0 auto', padding: '30px' }}>
+            {/* Título */}
+            <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: '0 0 25px 0', color: '#333' }}>Factura</h1>
+
+            {/* Encabezado con logo + datos factura */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '25px' }}>
+              {/* Logo y datos de la fundación */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
+                <div>
+                  <img src="/logoo.png" alt="FUNDAMUFA" style={{ width: '80px', height: 'auto' }} />
+                </div>
+              </div>
+
+              {/* Datos de la factura (derecha) */}
+              <div style={{ textAlign: 'left', fontSize: '12px' }}>
+                <table style={{ borderCollapse: 'collapse' }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: '2px 15px 2px 0', fontWeight: 'bold' }}>Fecha:</td>
+                      <td style={{ padding: '2px 0' }}>{formatDate(data.fecha)}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '2px 15px 2px 0', fontWeight: 'bold' }}>Nº de factura:</td>
+                      <td style={{ padding: '2px 0' }}>{data.numero}</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '2px 15px 2px 0', fontWeight: 'bold' }}>Fecha<br/>vencimiento:</td>
+                      <td style={{ padding: '2px 0' }}>{getVencimiento()}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Información de la fundación */}
+            <div style={{ marginBottom: '20px', lineHeight: '1.6' }}>
+              <p style={{ fontWeight: 'bold', fontSize: '14px', margin: '0 0 3px 0' }}>FUNDACION HUESPED MUJER Y FAMILIA</p>
+              <p style={{ margin: '0', fontSize: '12px' }}>NIT 900351001-8</p>
+              <p style={{ margin: '0', fontSize: '12px' }}>CARRERA 50 ( PALACE ) NRO 52 - 89  OFICINA 336 MEDELLIN</p>
+              <p style={{ margin: '0', fontSize: '12px' }}>ANTIOQUIA</p>
+              <p style={{ margin: '10px 0 0 0', fontSize: '12px' }}>MEDICO JORGE CHARRASQUIEL</p>
+              <p style={{ margin: '0', fontSize: '12px' }}>3136667479 - 3206332233</p>
+            </div>
+
+            {/* Facturar a */}
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ fontWeight: 'bold', fontSize: '12px', margin: '0 0 5px 0' }}>Facturar a</p>
+              <p style={{ margin: '0', fontSize: '13px' }}>{data.cliente?.nombre?.toUpperCase()}</p>
+              <p style={{ margin: '0', fontSize: '12px' }}>{data.cliente?.direccion || ''}</p>
+              {data.cliente?.telefono && (
+                <p style={{ margin: '0', fontSize: '12px' }}>Tel: {data.cliente.telefono}</p>
+              )}
+              <p style={{ margin: '0', fontSize: '12px' }}>C.C. {data.cliente?.cedula}</p>
+            </div>
+
+            {/* Tabla de ítems */}
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+              <thead>
+                <tr>
+                  <th style={{ border: '1px solid #999', padding: '8px', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', backgroundColor: '#f8f8f8', width: '60px' }}>Cant.</th>
+                  <th style={{ border: '1px solid #999', padding: '8px', textAlign: 'left', fontSize: '12px', fontWeight: 'bold', backgroundColor: '#f8f8f8' }}>Descripción</th>
+                  <th style={{ border: '1px solid #999', padding: '8px', textAlign: 'right', fontSize: '12px', fontWeight: 'bold', backgroundColor: '#f8f8f8', width: '140px' }}>Precio unitario</th>
+                  <th style={{ border: '1px solid #999', padding: '8px', textAlign: 'right', fontSize: '12px', fontWeight: 'bold', backgroundColor: '#f8f8f8', width: '130px', fontStyle: 'italic' }}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.items?.map((item, index) => (
+                  <tr key={index}>
+                    <td style={{ border: '1px solid #999', padding: '8px', textAlign: 'center', fontSize: '12px' }}>{item.cantidad}</td>
+                    <td style={{ border: '1px solid #999', padding: '8px', fontSize: '12px' }}>{item.descripcion?.toUpperCase()}</td>
+                    <td style={{ border: '1px solid #999', padding: '8px', textAlign: 'right', fontSize: '12px' }}>{formatMoney(item.precioUnitario)}</td>
+                    <td style={{ border: '1px solid #999', padding: '8px', textAlign: 'right', fontSize: '12px' }}>{formatMoney(item.total)}</td>
+                  </tr>
+                ))}
+                {/* Filas vacías para completar la tabla */}
+                {Array.from({ length: Math.max(0, 6 - (data.items?.length || 0)) }).map((_, i) => (
+                  <tr key={`empty-${i}`}>
+                    <td style={{ border: '1px solid #999', padding: '8px', height: '30px' }}>&nbsp;</td>
+                    <td style={{ border: '1px solid #999', padding: '8px' }}>&nbsp;</td>
+                    <td style={{ border: '1px solid #999', padding: '8px' }}>&nbsp;</td>
+                    <td style={{ border: '1px solid #999', padding: '8px' }}>&nbsp;</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Total y Saldo */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+              <table style={{ borderCollapse: 'collapse' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: '5px 20px', fontWeight: 'bold', fontStyle: 'italic', fontSize: '14px', textAlign: 'right' }}>Total</td>
+                    <td style={{ padding: '5px 10px', fontSize: '14px', textAlign: 'right' }}>{formatMoney(data.total)}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '5px 20px', fontWeight: 'bold', fontStyle: 'italic', fontSize: '14px', textAlign: 'right' }}>Saldo</td>
+                    <td style={{ padding: '5px 10px', fontSize: '14px', textAlign: 'right' }}>{formatMoney(data.saldo)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Agradecimiento */}
+            <p style={{ fontStyle: 'italic', fontSize: '12px', color: '#555', marginTop: '30px' }}>Gracias por su preferencia.</p>
+
+            {/* Línea de corte con tijera */}
+            <div style={{ marginTop: '30px', textAlign: 'center', position: 'relative' }}>
+              <div style={{ borderTop: '2px dashed #999', width: '100%', position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '-5px', top: '-10px', fontSize: '16px' }}>✂</span>
+              </div>
+            </div>
+          </div>
+        );
+
       case 'nota':
         return (
           <div className="print-content font-serif" style={{ fontSize: '12px', maxWidth: '800px', margin: '0 auto' }}>
@@ -358,6 +491,7 @@ export default function ImprimirModal({ tipo, data, onClose, soloVista = false }
     switch (tipo) {
       case 'formula': return 'Fórmula Médica';
       case 'historia': return 'Historia Clínica';
+      case 'factura': return 'Factura';
       case 'nota': return 'Nota';
       default: return 'Documento';
     }
@@ -367,6 +501,7 @@ export default function ImprimirModal({ tipo, data, onClose, soloVista = false }
     switch (tipo) {
       case 'formula': return 'from-purple-500 to-purple-600';
       case 'historia': return 'from-green-500 to-green-600';
+      case 'factura': return 'from-emerald-500 to-emerald-600';
       case 'nota': return 'from-orange-500 to-orange-600';
       default: return 'from-blue-500 to-blue-600';
     }

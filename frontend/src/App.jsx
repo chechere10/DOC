@@ -15,6 +15,8 @@ import Formulas from './pages/Formulas';
 import FormulaForm from './pages/FormulaForm';
 import Notas from './pages/Notas';
 import NotaForm from './pages/NotaForm';
+import Facturas from './pages/Facturas';
+import FacturaForm from './pages/FacturaForm';
 
 function App() {
   return (
@@ -169,6 +171,38 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <NotaForm />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Facturas */}
+          <Route
+            path="/facturas"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Facturas />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/facturas/nueva"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <FacturaForm />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/facturas/:id/editar"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <FacturaForm />
                 </Layout>
               </ProtectedRoute>
             }

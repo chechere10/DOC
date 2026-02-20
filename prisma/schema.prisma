@@ -27,6 +27,7 @@ model Cliente {
   updatedAt DateTime   @updatedAt
   formulas  Formula[]
   historias Historia[]
+  facturas  Factura[]
 }
 
 model Historia {
@@ -79,4 +80,28 @@ model Nota {
   estado    String   @default("abierta")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Factura {
+  id          Int           @id @default(autoincrement())
+  numero      Int           @unique
+  fecha       DateTime      @default(now())
+  vencimiento DateTime?
+  clienteId   Int
+  total       Float         @default(0)
+  saldo       Float         @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  cliente     Cliente       @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  items       FacturaItem[]
+}
+
+model FacturaItem {
+  id             Int     @id @default(autoincrement())
+  cantidad       Int
+  descripcion    String
+  precioUnitario Float
+  total          Float
+  facturaId      Int
+  factura        Factura @relation(fields: [facturaId], references: [id], onDelete: Cascade)
 }
